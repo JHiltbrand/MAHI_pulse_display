@@ -1,5 +1,6 @@
 # MAHI_pulse_display
 Standalone setup for running MAHI debugger for pulse display
+Checkout a CMSSW release (112X) and use the env to run the below commands.
 
 ## How to Run
 
