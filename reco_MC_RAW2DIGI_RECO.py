@@ -7,7 +7,7 @@ import FWCore.ParameterSet.Config as cms
 from Configuration.StandardSequences.Eras import eras
 from Configuration.AlCa.GlobalTag import GlobalTag
 
-process = cms.Process('RECO', eras.Run3)
+process = cms.Process('RECO', eras.Run3_2025)
 
 # import of standard configurations
 process.load('Configuration.StandardSequences.Services_cff')
@@ -56,9 +56,9 @@ process.TFileService = cms.Service("TFileService", fileName = cms.string("mahide
 
 # Other statements
 from Configuration.AlCa.GlobalTag import GlobalTag
-process.GlobalTag = GlobalTag(process.GlobalTag, '124X_dataRun3_Prompt_v10', '')
+process.GlobalTag = GlobalTag(process.GlobalTag, '150X_dataRun3_Prompt_v1', '')
 
-process.hbheprereco.cpu.saveInfos    = cms.bool(True)
+process.hbheprereco.saveInfos    = cms.bool(True)
 
 process.load("RecoLocalCalo.HcalRecAlgos.test.mahiDebugger_cfi")
 
