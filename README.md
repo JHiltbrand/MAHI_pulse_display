@@ -1,6 +1,6 @@
 # MAHI_pulse_display
 Standalone setup for running MAHI debugger for pulse display
-Checkout a CMSSW release (140X for Run3 2024) and use the env to run the below commands.
+Checkout a CMSSW release (150X for Run3 2025) and use the env to run the below commands.
 
 ## How to Run
 
@@ -20,8 +20,12 @@ edmCopyPickMerge outputFile=pickevents.root \
 
 3. Use CMSSW and the provided python config to run on the `pickevents.root` in order to run the MAHI debugger and make flat ntuple with useful output to plot. This will yield yet another ROOT file `mahidebugger.root`. N.B. There is a bug in the MahiDebugger that needs to be resolved locally. The description at https://cmssdt.cern.ch/lxr/source/RecoLocalCalo/HcalRecAlgos/test/MahiDebugger.cc#L368 needs to read `thEnergeticPulses` (plural). So check out this package locally and build.
 
-5. Assuming knowledge of the iphi and ieta of interest, edit `pulsedisplay.C` to print out specifically for that tower and run.
+```
+cmsRun raw2digi_and_reco.py
+```
+
+4. Assuming knowledge of the iphi and ieta of interest, edit `pulsedisplay.C` to print out specifically for that tower and run. PDFs will be placed in a `pulse_plots` directory.
 
 ```
-root pulsedisplay.C
+root -b -l -q pulsedisplay.C+
 ```

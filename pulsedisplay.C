@@ -19,30 +19,14 @@
 
 using namespace std;
 
-bool printHit(int run, int ls, int evt, int ieta, int iphi, int depth, float mahiEnergy, float chiSq, bool isData=false)
+bool printHit(int run, int ls, int evt, int ieta, int iphi, int depth, float mahiEnergy, float chiSq, float leakage)
 {
-  bool printPulses = false;
-  // 
-  // data
-  // 
-  if(isData)
-  {
-	  if ((ieta == -5) && iphi==42) printPulses=true;
-  }
-  //
-  // MC
-  //
-  else 
-  {
-	  if (run==1 && ls==1 && evt==48 && ieta==28 && iphi==33 && depth==2) printPulses=true;
-  }
-  //return true;
-  return printPulses;
+  if (leakage > -0.01 and mahiEnergy > 15) return true;
+  return false;
 }
 
 
 TLegend* drawPulsePlot(TChain *ch, int printIndex, THStack* &st, TH1D* &h1_data, TString title, float &max) 
-                  //int run, int ls, int evt, int ieta, int iphi, int depth, 
 { 
   float inputTS[10];
   float itPulse[10];
@@ -78,30 +62,10 @@ TLegend* drawPulsePlot(TChain *ch, int printIndex, THStack* &st, TH1D* &h1_data,
   title.ReplaceAll("E= GeV", Form("E=%.1f GeV", mahiEnergy*inGain)); 
   title.ReplaceAll("chi2=", Form("#chi^{2}= %.1f", chiSq)); 
 
-  if(1)
-  {
-    cout << title << endl;
-    cout << inGain << endl; 
-    cout << ootEnergy[0] << endl; 
-    cout << ootEnergy[1] << endl; 
-    cout << ootEnergy[2] << endl; 
-    cout << mahiEnergy << endl; 
-    cout << ootEnergy[3] << endl; 
-    cout << ootEnergy[4] << endl; 
-    cout << ootEnergy[5] << endl; 
-    cout << ootEnergy[6] << endl; 
-    //cout << pedEnergy << endl; 
-  }
-  
+  std::cout << title << std::endl;
 
   for(int its=0; its<8; its++) 
   {
- /* if(ootEnergy[1]<0) ootEnergy[1]=0; 
-    if(ootEnergy[0]<0) ootEnergy[0]=0; 
-    if(ootEnergy[4]<0) ootEnergy[4]=0; 
-    if(ootEnergy[5]<0) ootEnergy[5]=0; 
-    if(ootEnergy[6]<0) ootEnergy[6]=0; 
-*/
     h1_data->SetBinContent(its+1, inputTS[its]*inGain);
     h1_it->SetBinContent(its+1, itPulse[its]*mahiEnergy*inGain);
     h1_p1->SetBinContent(its+1, ootPulse[2][its]*ootEnergy[2]*inGain);
@@ -189,29 +153,33 @@ TLegend* drawPulsePlot(TChain *ch, int printIndex, THStack* &st, TH1D* &h1_data,
   if(h1_it->Integral(1,8)>0) st->Add(h1_it);
   st->SetTitle(title); 
   st->SetMaximum(h1_data->GetMaximum()*1.2); 
-  //st->SetMinimum(h1_ped->GetMaximum()*0.5); 
-  //st->GetXaxis()->SetLabelSize(0.);
-  //st->GetYaxis()->SetLabelSize(0.);
   return l1;
 }
 
-void pulsedisplay(bool delay=false)
+void pulsedisplay()
 {
     gErrorIgnoreLevel=kError+1;
     TChain* ch_8p       = new TChain("mahiDebugger/HcalTree"); 
     ch_8p->Add("mahidebugger.root"); 
+
+    std::string outputFolder = "pulse_plots";
+
+    if (gSystem->AccessPathName(outputFolder.c_str()))
+        gSystem->mkdir(outputFolder.c_str(), false);
     
-    int run;
-    int ls;
-    int evt;
+    unsigned int run;
+    unsigned int ls;
+    uint64_t evt;
     int ieta;
     int iphi;
     int depth;
     float mahiEnergy=0;
     float inGain=0;
     float chiSq=0;
-    //float ootEnergy[7]={0};
+    float ootEnergy[7]={0};
     float inputTS[10];
+    float itPulse[10];
+    float ootPulse[7][10];
 
     ch_8p->SetBranchAddress("run",        &run);
     ch_8p->SetBranchAddress("ls",         &ls);
@@ -222,27 +190,30 @@ void pulsedisplay(bool delay=false)
     ch_8p->SetBranchAddress("mahiEnergy", &mahiEnergy);
     ch_8p->SetBranchAddress("inGain",     &inGain);
     ch_8p->SetBranchAddress("chiSq",      &chiSq);
-    //ch_8p->SetBranchAddress("ootEnergy",   &ootEnergy);
+    ch_8p->SetBranchAddress("ootEnergy",   &ootEnergy);
     ch_8p->SetBranchAddress("inputTS",    &inputTS);
+    ch_8p->SetBranchAddress("itPulse",    &itPulse);
+    ch_8p->SetBranchAddress("ootPulse",    &ootPulse);
 
     vector<int> vec_printIndex;
     vector<TString> vec_title;
+    vector<float> vec_energy;
 
     int nentries = ch_8p->GetEntries();
     for(int i=0; i<nentries; i++)
     {
       ch_8p->GetEntry(i);  
-      if(printHit(run,ls,evt,ieta,iphi,depth,mahiEnergy*inGain,chiSq,true))
+      float leakage = (ootPulse[2][2]*ootEnergy[2])/(itPulse[3]*mahiEnergy);
+      if(printHit(run,ls,evt,ieta,iphi,depth,mahiEnergy*inGain,chiSq,leakage))
       {
         vec_printIndex.push_back(i);
-        vec_title.push_back(Form("run=%i ls=%i evt=%i (%i, %i, %i)",run, ls, evt, ieta, iphi, depth));
-        //cout << vec_title.back().Data() << ", " << mahiEnergy*inGain << ", " << chiSq << endl;
+        vec_title.push_back(Form("run=%i ls=%i evt=%lu (%i, %i, %i)",run, ls, evt, ieta, iphi, depth));
+        vec_energy.push_back(mahiEnergy*inGain);
       }
     }
 
     for(unsigned int i=0; i<vec_printIndex.size(); i++) 
     {
-      //cout << vec_title.at(i).Data() << endl;
   
       THStack *st_8p    = new THStack("st_8p",        Form("8p   %s", vec_title.at(i).Data()));
       TH1D *h1_8p_data  = InitTH1D("h1_8p_data",      "h1_8p_data",       8, -0.5, 7.5); 
@@ -253,14 +224,11 @@ void pulsedisplay(bool delay=false)
    
       if(h1_8p_data->GetMaximum()>max) max=h1_8p_data->GetMaximum();
  
-      //
       TCanvas *c = new TCanvas("c","c",800,300); 
       st_8p->Draw(); 
       st_8p->SetMaximum(max*1.2);
       h1_8p_data->Draw("p same");
       leg_8p->Draw();
-      if(delay) c->Print(Form("plots_temp/pulse_run%i_ls%i_evt%i_ieta%i_iphi%i_depth%i_10ns.pdf", run, ls, evt, ieta, iphi, depth));
-      else c->Print(Form("plots_temp/pulse_run%i_ls%i_evt%i_ieta%i_iphi%i_depth%i.pdf", run, ls, evt, ieta, iphi, depth));
+      c->Print(Form("%s/run%i_ls%i_evt%lu_e%iGeV_ieta%i_iphi%i_depth%i.pdf", outputFolder.c_str(), run, ls, evt, int(vec_energy.at(i)), ieta, iphi, depth));
     }
-
 }

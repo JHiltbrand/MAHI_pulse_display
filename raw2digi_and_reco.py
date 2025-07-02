@@ -24,14 +24,33 @@ process.load('Configuration.StandardSequences.EndOfProcess_cff')
 process.load('Configuration.StandardSequences.FrontierConditions_GlobalTag_cff')
 
 process.maxEvents = cms.untracked.PSet(
-    input = cms.untracked.int32(1),
+    input = cms.untracked.int32(-1),
     output = cms.optional.untracked.allowed(cms.int32,cms.PSet)
 )
 
 # Input source
 process.source = cms.Source("PoolSource",
     fileNames = cms.untracked.vstring(
-	    "file://pickevents.root"
+"file://../pickevents_393240_1200_2742973836.root",
+"file://../pickevents_393240_1292_2960757508.root",
+"file://../pickevents_393240_1398_3214131627.root",
+"file://../pickevents_393240_1519_3494570043.root",
+"file://../pickevents_393240_1822_4200879002.root",
+"file://../pickevents_393240_2190_5015982489.root",
+"file://../pickevents_393240_2295_5220179461.root",
+"file://../pickevents_393240_2346_5315990171.root",
+"file://../pickevents_393240_2496_5578218912.root",
+"file://../pickevents_393240_2555_5677504258.root",
+"file://../pickevents_393240_2613_5768016264.root",
+"file://../pickevents_393240_317_581078604.root",
+"file://../pickevents_393240_3723_7122988071.root",
+"file://../pickevents_393240_3775_7172457310.root",
+"file://../pickevents_393240_3824_7217406373.root",
+"file://../pickevents_393240_3938_7319321097.root",
+"file://../pickevents_393240_4318_7633081106.root",
+"file://../pickevents_393240_4623_7857265795.root",
+"file://../pickevents_393240_476_969531018.root",
+"file://../pickevents_393240_593_1258117410.root ",
     ),
     secondaryFileNames = cms.untracked.vstring()
 )
